@@ -1,0 +1,22 @@
+version: 2.1
+orbs:
+  eventuate-gradle-build-and-test: "eventuate_io/eventuate-gradle-build-and-test@0.2.7"
+workflows:
+  version: 2.1
+  build-test-and-deploy:
+    jobs:
+      - eventuate-gradle-build-and-test/build-and-test:
+          name: mysql-intel
+          resource_class: large
+          script: ./build-and-test-all-mysql.sh
+      - eventuate-gradle-build-and-test/build-and-test:
+          name: mysql-arm
+          resource_class: arm.large
+          script: ./.circleci/build-and-test-arm.sh
+      - eventuate-gradle-build-and-test/build-and-test:
+          name: postgres
+          resource_class: large
+          script: ./build-and-test-all-postgres.sh
+#      - eventuate-gradle-build-and-test/build-and-test:
+#          name: mysql-sharded-outbox
+#          script: ./build-and-test-all-mysql-sharded-outbox.sh

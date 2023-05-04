@@ -20,3 +20,5 @@ include 'api-gateway-service:api-gateway-service-api-web'
 include 'api-gateway-service:api-gateway-service-main'
 
 include 'end-to-end-tests'
+include 'product-service'
+

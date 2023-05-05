@@ -1,0 +1,18 @@
+apply plugin: ServicePlugin
+
+dependencies {
+    implementation project(":product-service:product-service-web")
+    implementation project(":product-service:product-service-sagas")
+    implementation project(":product-service:product-service-persistence")
+    implementation "io.eventuate.tram.core:eventuate-tram-spring-logging"
+
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
+    implementation "org.springframework.boot:spring-boot-starter-web"
+
+    testImplementation "junit:junit:4.12"
+    testImplementation "org.mockito:mockito-core:2.23.0"
+}
+
+check.shouldRunAfter(":product-service:product-service-web:check")
+check.shouldRunAfter(":product-service:product-service-persistence:check")
+check.shouldRunAfter(":product-service:product-service-sagas:check")

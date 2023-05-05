@@ -54,6 +54,33 @@ services:
       EVENTUATE_TRAM_OUTBOX_PARTITIONING_OUTBOX_TABLES: ${EVENTUATE_OUTBOX_TABLES}
       EVENTUATE_DATABASE_SCHEMA: none
 
+  product-service:
+    env_file:
+      - ${ENV_FILE:-docker-compose-env-files/empty.env}
+    build:
+      context: ./product-service/product-service-main/
+      args:
+        serviceImageVersion: ${SERVICE_IMAGE_VERSION}
+        baseImageVersion: ${EVENTUATE_JAVA_BASE_IMAGE_VERSION}
+    ports:
+      - "8084:8080"
+    depends_on:
+      - product-service-mysql
+      - kafka
+      - zookeeper
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://product-service-mysql/product_service
+      SPRING_DATASOURCE_USERNAME: mysqluser
+      SPRING_DATASOURCE_PASSWORD: mysqlpw
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      EVENTUATELOCAL_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      EVENTUATELOCAL_ZOOKEEPER_CONNECTION_STRING: zookeeper:2181
+      SPRING_SLEUTH_ENABLED: "true"
+      SPRING_SLEUTH_SAMPLER_PROBABILITY: 1
+      SPRING_ZIPKIN_BASE_URL: http://zipkin:9411/
+      EVENTUATE_TRAM_OUTBOX_PARTITIONING_OUTBOX_TABLES: ${EVENTUATE_OUTBOX_TABLES}
+      EVENTUATE_DATABASE_SCHEMA: none
+
   api-gateway-service:
     build:
       context: ./api-gateway-service/api-gateway-service-main/
@@ -65,9 +92,11 @@ services:
     depends_on:
       - order-service
       - customer-service
+      - product-service
     environment:
       ORDER_DESTINATIONS_ORDERSERVICEURL: http://order-service:8080
       CUSTOMER_DESTINATIONS_CUSTOMERSERVICEURL: http://customer-service:8080
+      PRODUCT_DESTINATIONS_PRODUCTSERVICEURL: http://product-service:8080
       SPRING_SLEUTH_ENABLED: "true"
       SPRING_SLEUTH_SAMPLER_PROBABILITY: 1
       SPRING_ZIPKIN_BASE_URL: http://zipkin:9411/
@@ -119,6 +148,17 @@ services:
       - EVENTUATE_OUTBOX_TABLES=${EVENTUATE_OUTBOX_TABLES}
       - MYSQL_DATABASE=order_service
 
+  product-service-mysql:
+    image: eventuateio/eventuate-vanilla-mysql8:${EVENTUATE_COMMON_VERSION?}
+    ports:
+      - 3308:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_USER=mysqluser
+      - MYSQL_PASSWORD=mysqlpw
+      - EVENTUATE_OUTBOX_TABLES=${EVENTUATE_OUTBOX_TABLES}
+      - MYSQL_DATABASE=product_service
+
   cdc-service:
     image: eventuateio/eventuate-cdc-service:${EVENTUATE_CDC_VERSION?}
     ports:
@@ -126,6 +166,7 @@ services:
     depends_on:
       - customer-service-mysql
       - order-service-mysql
+      - product-service-mysql
       - kafka
       - zookeeper
     environment:
@@ -162,6 +203,21 @@ services:
       EVENTUATE_CDC_READER_READER2_OFFSETSTORAGETOPICNAME: db.history.common
       EVENTUATE_CDC_READER_READER2_OUTBOXID: 2
 
+      EVENTUATE_CDC_READER_READER3_TYPE: mysql-binlog
+      EVENTUATE_CDC_READER_READER3_DATASOURCEURL: jdbc:mysql://product-service-mysql:3306/product_service
+      EVENTUATE_CDC_READER_READER3_MONITORINGSCHEMA: product_service
+      EVENTUATE_CDC_READER_READER3_DATASOURCEUSERNAME: root
+      EVENTUATE_CDC_READER_READER3_DATASOURCEPASSWORD: rootpassword
+      EVENTUATE_CDC_READER_READER3_DATASOURCEDRIVERCLASSNAME: com.mysql.cj.jdbc.Driver
+      EVENTUATE_CDC_READER_READER3_LEADERSHIPLOCKPATH: /eventuate/cdc/leader/product_service
+      EVENTUATE_CDC_READER_READER3_CDCDBUSERNAME: root
+      EVENTUATE_CDC_READER_READER3_CDCDBPASSWORD: rootpassword
+      EVENTUATE_CDC_READER_READER3_READOLDDEBEZIUMDBOFFSETSTORAGETOPIC: "false"
+      EVENTUATE_CDC_READER_READER3_MYSQLBINLOGCLIENTUNIQUEID: 2
+      EVENTUATE_CDC_READER_READER3_OFFSETSTOREKEY: MySqlBinlogOrderService
+      EVENTUATE_CDC_READER_READER3_OFFSETSTORAGETOPICNAME: db.history.common
+      EVENTUATE_CDC_READER_READER3_OUTBOXID: 2
+
       EVENTUATE_CDC_PIPELINE_PIPELINE1_TYPE: eventuate-tram
       EVENTUATE_CDC_PIPELINE_PIPELINE1_READER: reader1
       EVENTUATE_CDC_PIPELINE_PIPELINE1_EVENTUATEDATABASESCHEMA: customer_service
@@ -169,6 +225,10 @@ services:
       EVENTUATE_CDC_PIPELINE_PIPELINE2_TYPE: eventuate-tram
       EVENTUATE_CDC_PIPELINE_PIPELINE2_READER: reader2
       EVENTUATE_CDC_PIPELINE_PIPELINE2_EVENTUATEDATABASESCHEMA: order_service
+
+      EVENTUATE_CDC_PIPELINE_PIPELINE3_TYPE: eventuate-tram
+      EVENTUATE_CDC_PIPELINE_PIPELINE3_READER: reader3
+      EVENTUATE_CDC_PIPELINE_PIPELINE3_EVENTUATEDATABASESCHEMA: product_service
 
   zipkin:
     image: openzipkin/zipkin:2.23

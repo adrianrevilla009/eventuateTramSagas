@@ -34,7 +34,6 @@ public class CreateProductSaga implements SimpleSaga<CreateProductSagaData>  {
     }
 
     private void delete(CreateProductSagaData data) {
-        /*Product product = productService.createProduct(data.getOrderDetails());
-        data.setOrderId(product.getId());*/
+        productService.deleteProduct(data.getId());
     }
 }

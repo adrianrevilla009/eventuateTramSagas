@@ -33,4 +33,6 @@ public class ProductController {
     Product product = productService.createProduct(createProductRequest.getName(), createProductRequest.getDescription(), createProductRequest.getStock());
     return new CreateProductResponse(product.getId());
   }
+
+  
 }

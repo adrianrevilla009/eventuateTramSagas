@@ -2,16 +2,14 @@ package io.eventuate.examples.tram.sagas.products.web;
 
 import io.eventuate.examples.tram.sagas.products.api.web.CreateProductRequest;
 import io.eventuate.examples.tram.sagas.products.api.web.CreateProductResponse;
+import io.eventuate.examples.tram.sagas.products.api.web.GetProductsResponse;
 import io.eventuate.examples.tram.sagas.products.domain.Product;
 import io.eventuate.examples.tram.sagas.products.domain.ProductRepository;
 import io.eventuate.examples.tram.sagas.products.domain.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import java.util.List;
 
 @RestController
 public class ProductController {
@@ -34,5 +32,9 @@ public class ProductController {
     return new CreateProductResponse(product.getId());
   }
 
-  
+  @RequestMapping(value = "/products", method = RequestMethod.GET)
+  public GetProductsResponse getProducts() {
+    List<Product> productList = productService.getProducts();
+    return new GetProductsResponse(productList);
+  }
 }

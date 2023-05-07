@@ -1,10 +1,6 @@
 package io.eventuate.examples.tram.sagas.ordersandcustomers.orders.sagas;
 
-import io.eventuate.examples.tram.sagas.ordersandcustomers.customers.api.messaging.replies.CustomerCreditLimitExceeded;
-import io.eventuate.examples.tram.sagas.ordersandcustomers.customers.api.messaging.replies.CustomerNotFound;
-import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.api.messaging.sagas.createorder.CreateOrderSagaData;
-import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.domain.Order;
-import io.eventuate.examples.tram.sagas.products.api.messaging.createorder.CreateProductSagaData;
+import io.eventuate.examples.tram.sagas.products.api.messaging.createproduct.CreateProductSagaData;
 import io.eventuate.examples.tram.sagas.products.domain.Product;
 import io.eventuate.examples.tram.sagas.products.domain.ProductService;
 import io.eventuate.tram.sagas.orchestration.SagaDefinition;

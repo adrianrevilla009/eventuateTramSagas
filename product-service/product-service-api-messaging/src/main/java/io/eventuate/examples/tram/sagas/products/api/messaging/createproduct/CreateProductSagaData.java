@@ -1,4 +1,4 @@
-package io.eventuate.examples.tram.sagas.products.api.messaging.createorder;
+package io.eventuate.examples.tram.sagas.products.api.messaging.createproduct;
 
 
 public class CreateProductSagaData {

@@ -3,6 +3,7 @@ dependencies {
     implementation project(":customer-service:customer-service-api-messaging")
     implementation "org.springframework.boot:spring-boot-starter-data-jpa"
     implementation "io.eventuate.tram.core:eventuate-tram-spring-commands"
+    implementation project(":product-service:product-service-domain")
 }
 
 

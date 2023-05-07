@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class ProductService {
     @Autowired
@@ -23,13 +24,16 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
-    public List<Product> getProducts() {
-        List<Product> productList = (List<Product>) productRepository.findAll();
+    public List<Product> getProducts(List<Product> productList) {
         List<Product> productsWithStock = new ArrayList<>();
         for (Product product : productList) {
-            if (product.getStock() > 0) {
+            Optional<Product> savedProd = productRepository.findById(product.getId());
+            if (savedProd.get() != null && savedProd.get().getStock() > 0) {
                 productsWithStock.add(product);
             }
+        }
+        if (productList.size() != productsWithStock.size()) {
+            throw new ProductsWithNoStockException();
         }
         return productsWithStock;
     }

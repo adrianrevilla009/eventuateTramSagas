@@ -31,7 +31,7 @@ public class OrderController {
 
   @RequestMapping(value = "/orders", method = RequestMethod.POST)
   public CreateOrderResponse createOrder(@RequestBody CreateOrderRequest createOrderRequest) {
-    Order order = orderSagaService.createOrder(new OrderDetails(createOrderRequest.getCustomerId(), createOrderRequest.getOrderTotal()));
+    Order order = orderSagaService.createOrder(new OrderDetails(createOrderRequest.getCustomerId(), createOrderRequest.getOrderTotal(), createOrderRequest.getProductList()));
     return new CreateOrderResponse(order.getId());
   }
 

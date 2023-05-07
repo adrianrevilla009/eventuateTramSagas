@@ -12,6 +12,7 @@ import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.api.web.Create
 import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.api.web.CreateOrderResponse;
 import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.api.web.GetOrderResponse;
 import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.api.web.GetOrdersResponse;
+import io.eventuate.examples.tram.sagas.products.domain.Product;
 import io.eventuate.util.test.async.Eventually;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
@@ -32,6 +33,8 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -55,7 +58,7 @@ public class CustomersAndOrdersEndToEndTest {
     private final Money orderTotalOverCreditLimit = new Money("123.40");
     private Money creditLimit = new Money("15.00");
 
-
+    private List<Product> productList = Arrays.asList(new Product("Leche", "Entera", 1L));
     @BeforeClass
     public static void startContainers() {
         applicationUnderTest.start();
@@ -87,15 +90,15 @@ public class CustomersAndOrdersEndToEndTest {
 
         assertCustomerHasCreditLimit(createCustomerResponse.getCustomerId());
 
-        CreateOrderResponse createOrderResponse = createOrder(createCustomerResponse.getCustomerId(), orderTotalUnderCreditLimit);
+        CreateOrderResponse createOrderResponse = createOrder(createCustomerResponse.getCustomerId(), orderTotalUnderCreditLimit, productList);
 
         assertOrderState(createOrderResponse.getOrderId(), OrderState.APPROVED, null);
     }
 
     @Nullable
-    private CreateOrderResponse createOrder(Long customerId, Money orderTotal) {
+    private CreateOrderResponse createOrder(Long customerId, Money orderTotal, List<Product> productList) {
         return restTemplate.postForObject(applicationUnderTest.apiGatewayBaseUrl(hostName, "orders"),
-                new CreateOrderRequest(customerId, orderTotal), CreateOrderResponse.class);
+                new CreateOrderRequest(customerId, orderTotal, productList), CreateOrderResponse.class);
     }
 
     @Nullable
@@ -114,7 +117,7 @@ public class CustomersAndOrdersEndToEndTest {
     public void shouldRejectBecauseOfInsufficientCredit() {
         CreateCustomerResponse createCustomerResponse = createCustomer();
 
-        CreateOrderResponse createOrderResponse = createOrder(createCustomerResponse.getCustomerId(), orderTotalOverCreditLimit);
+        CreateOrderResponse createOrderResponse = createOrder(createCustomerResponse.getCustomerId(), orderTotalOverCreditLimit, productList);
 
         assertOrderState(createOrderResponse.getOrderId(), OrderState.REJECTED, RejectionReason.INSUFFICIENT_CREDIT);
     }
@@ -122,7 +125,7 @@ public class CustomersAndOrdersEndToEndTest {
     @Test
     public void shouldRejectBecauseOfUnknownCustomer() {
 
-        CreateOrderResponse createOrderResponse = createOrder(Long.MAX_VALUE, new Money("123.40"));
+        CreateOrderResponse createOrderResponse = createOrder(Long.MAX_VALUE, new Money("123.40"), productList);
 
         assertOrderState(createOrderResponse.getOrderId(), OrderState.REJECTED, RejectionReason.UNKNOWN_CUSTOMER);
     }
@@ -132,7 +135,7 @@ public class CustomersAndOrdersEndToEndTest {
 
         CreateCustomerResponse createCustomerResponse = createCustomer();
 
-        CreateOrderResponse createOrderResponse = createOrder(createCustomerResponse.getCustomerId(), orderTotalUnderCreditLimit);
+        CreateOrderResponse createOrderResponse = createOrder(createCustomerResponse.getCustomerId(), orderTotalUnderCreditLimit, productList);
 
         Eventually.eventually(() -> {
             GetCustomerHistoryResponse customerResponse = getOrderHistory(createCustomerResponse.getCustomerId());

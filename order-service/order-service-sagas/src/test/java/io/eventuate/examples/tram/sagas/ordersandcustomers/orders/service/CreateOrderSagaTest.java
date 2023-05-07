@@ -12,10 +12,14 @@ import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.domain.OrderRe
 import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.domain.OrderService;
 import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.sagas.CreateOrderSaga;
 import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.sagas.CustomerServiceProxy;
+import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.sagas.ProductServiceProxy;
+import io.eventuate.examples.tram.sagas.products.domain.Product;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static io.eventuate.tram.sagas.testing.SagaUnitTestSupport.given;
@@ -30,12 +34,16 @@ public class CreateOrderSagaTest {
   private OrderService orderService;
   private Long customerId = 102L;
   private Money orderTotal = new Money("12.34");
-  private OrderDetails orderDetails = new OrderDetails(customerId, orderTotal);
+
+  private List<Product> productList = Arrays.asList(new Product("Leche", "Entera", 1L));
+  private OrderDetails orderDetails = new OrderDetails(customerId, orderTotal, productList);
   private Long orderId = 103L;
   private CustomerServiceProxy customerService = new CustomerServiceProxy();
 
+  private ProductServiceProxy productService = new ProductServiceProxy();
+
   private CreateOrderSaga makeCreateOrderSaga() {
-    return new CreateOrderSaga(orderService, customerService);
+    return new CreateOrderSaga(orderService, customerService, productService);
   }
 
 

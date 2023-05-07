@@ -2,6 +2,7 @@ package io.eventuate.examples.tram.sagas.products.web;
 
 import io.eventuate.examples.tram.sagas.products.api.web.CreateProductRequest;
 import io.eventuate.examples.tram.sagas.products.api.web.CreateProductResponse;
+import io.eventuate.examples.tram.sagas.products.api.web.GetProductsRequest;
 import io.eventuate.examples.tram.sagas.products.api.web.GetProductsResponse;
 import io.eventuate.examples.tram.sagas.products.domain.Product;
 import io.eventuate.examples.tram.sagas.products.domain.ProductRepository;
@@ -32,9 +33,9 @@ public class ProductController {
     return new CreateProductResponse(product.getId());
   }
 
-  @RequestMapping(value = "/products", method = RequestMethod.GET)
-  public GetProductsResponse getProducts() {
-    List<Product> productList = productService.getProducts();
+  @RequestMapping(value = "/products", method = RequestMethod.POST)
+  public GetProductsResponse getProducts(@RequestBody GetProductsRequest getProductsRequest) {
+    List<Product> productList = productService.getProducts(getProductsRequest.getProductList());
     return new GetProductsResponse(productList);
   }
 }

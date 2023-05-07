@@ -22,8 +22,8 @@ public class OrderSagasConfiguration {
   }
 
   @Bean
-  public CreateOrderSaga createOrderSaga(OrderService orderService, CustomerServiceProxy customerService) {
-    return new CreateOrderSaga(orderService, customerService);
+  public CreateOrderSaga createOrderSaga(OrderService orderService, CustomerServiceProxy customerService, ProductServiceProxy productService) {
+    return new CreateOrderSaga(orderService, customerService, productService);
   }
 
   @Bean

@@ -3,12 +3,10 @@ package io.eventuate.examples.tram.sagas.products.messaging;
 import io.eventuate.examples.tram.sagas.products.api.messaging.commands.CreateProductCommand;
 import io.eventuate.examples.tram.sagas.products.api.messaging.commands.DeleteProductCommand;
 import io.eventuate.examples.tram.sagas.products.api.messaging.commands.GetProductsCommand;
-import io.eventuate.examples.tram.sagas.products.api.messaging.replies.ProductCreated;
-import io.eventuate.examples.tram.sagas.products.api.messaging.replies.ProductDeleted;
-import io.eventuate.examples.tram.sagas.products.api.messaging.replies.ProductNotFound;
-import io.eventuate.examples.tram.sagas.products.api.messaging.replies.ProductsGet;
+import io.eventuate.examples.tram.sagas.products.api.messaging.replies.*;
 import io.eventuate.examples.tram.sagas.products.domain.ProductNotFoundException;
 import io.eventuate.examples.tram.sagas.products.domain.ProductService;
+import io.eventuate.examples.tram.sagas.products.domain.ProductsWithNoStockException;
 import io.eventuate.tram.commands.consumer.CommandHandlers;
 import io.eventuate.tram.commands.consumer.CommandMessage;
 import io.eventuate.tram.messaging.common.Message;
@@ -56,8 +54,13 @@ public class ProductCommandHandler {
   }
 
   public Message getProducts(CommandMessage<GetProductsCommand> cm) {
-    productService.getProducts();
-    return withSuccess(new ProductsGet());
+    GetProductsCommand cmd = cm.getCommand();
+    try {
+      productService.getProducts(cmd.getProductList());
+      return withSuccess(new ProductsGet());
+    } catch (ProductsWithNoStockException e) {
+      return withFailure(new ProductsWithNoStock());
+    }
   }
 
 }

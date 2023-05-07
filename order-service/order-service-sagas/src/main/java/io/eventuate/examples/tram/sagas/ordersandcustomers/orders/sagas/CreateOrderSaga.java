@@ -7,19 +7,26 @@ import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.api.messaging.
 import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.api.messaging.sagas.createorder.CreateOrderSagaData;
 import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.domain.Order;
 import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.domain.OrderService;
+import io.eventuate.examples.tram.sagas.products.domain.Product;
 import io.eventuate.tram.commands.consumer.CommandWithDestination;
 import io.eventuate.tram.sagas.orchestration.SagaDefinition;
 import io.eventuate.tram.sagas.simpledsl.SimpleSaga;
+
+import java.util.List;
 
 public class CreateOrderSaga implements SimpleSaga<CreateOrderSagaData> {
 
   private OrderService orderService;
   private CustomerServiceProxy customerService;
 
+  private ProductServiceProxy productService;
 
-  public CreateOrderSaga(OrderService orderService, CustomerServiceProxy customerService) {
+
+  public CreateOrderSaga(OrderService orderService, CustomerServiceProxy customerService,
+                         ProductServiceProxy productService) {
     this.orderService = orderService;
     this.customerService = customerService;
+    this.productService = productService;
   }
 
   private SagaDefinition<CreateOrderSagaData> sagaDefinition =
@@ -30,6 +37,8 @@ public class CreateOrderSaga implements SimpleSaga<CreateOrderSagaData> {
             .invokeParticipant(this::reserveCredit)
             .onReply(CustomerNotFound.class, this::handleCustomerNotFound)
             .onReply(CustomerCreditLimitExceeded.class, this::handleCustomerCreditLimitExceeded)
+          .step()
+             .invokeLocal(this::checkProducts)
           .step()
             .invokeLocal(this::approve)
           .build();
@@ -66,5 +75,11 @@ public class CreateOrderSaga implements SimpleSaga<CreateOrderSagaData> {
 
   private void reject(CreateOrderSagaData data) {
     orderService.rejectOrder(data.getOrderId(), data.getRejectionReason());
+  }
+
+  private boolean checkProducts(CreateOrderSagaData data) {
+    List<Product> productList = data.getOrderDetails().getProductList();
+    this.productService.getProducts(productList);
+    return true;
   }
 }

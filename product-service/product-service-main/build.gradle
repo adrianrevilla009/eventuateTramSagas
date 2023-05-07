@@ -1,18 +1,28 @@
 apply plugin: ServicePlugin
+apply plugin: ComponentTestsPlugin
 
 dependencies {
     implementation project(":product-service:product-service-web")
-    implementation project(":product-service:product-service-sagas")
     implementation project(":product-service:product-service-persistence")
+    implementation project(":product-service:product-service-messaging")
     implementation "io.eventuate.tram.core:eventuate-tram-spring-logging"
 
     implementation "org.springframework.boot:spring-boot-starter-actuator"
     implementation "org.springframework.boot:spring-boot-starter-web"
 
-    testImplementation "junit:junit:4.12"
-    testImplementation "org.mockito:mockito-core:2.23.0"
+    // TODO shouldn't need to do this too
+    testImplementation "org.testcontainers:testcontainers:$testContainersVersion"
+
+    componentTestImplementation "io.eventuate.platform.testcontainer.support:eventuate-platform-testcontainer-support-service:$eventuatePlatformTestContainerSupportVersion"
+
+    componentTestImplementation "io.eventuate.common:eventuate-common-testcontainers"
+    componentTestImplementation "io.eventuate.messaging.kafka:eventuate-messaging-kafka-testcontainers"
+    componentTestImplementation "io.eventuate.cdc:eventuate-cdc-testcontainers"
+
 }
+
 
 check.shouldRunAfter(":product-service:product-service-web:check")
 check.shouldRunAfter(":product-service:product-service-persistence:check")
-check.shouldRunAfter(":product-service:product-service-sagas:check")
+check.shouldRunAfter(":product-service:product-service-messaging:check")
+check.shouldRunAfter(":product-service:product-service-messaging:check")

@@ -22,4 +22,13 @@ public class CreateProductRequest {
     public Long getStock() {
         return stock;
     }
+
+    @Override
+    public String toString() {
+        return "CreateProductRequest{" +
+                "name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", stock=" + stock +
+                '}';
+    }
 }

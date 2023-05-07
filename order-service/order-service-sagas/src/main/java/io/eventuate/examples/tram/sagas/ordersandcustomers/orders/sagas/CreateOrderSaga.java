@@ -7,7 +7,9 @@ import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.api.messaging.
 import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.api.messaging.sagas.createorder.CreateOrderSagaData;
 import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.domain.Order;
 import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.domain.OrderService;
+import io.eventuate.examples.tram.sagas.products.api.messaging.replies.ProductsWithNoStock;
 import io.eventuate.examples.tram.sagas.products.domain.Product;
+import io.eventuate.examples.tram.sagas.products.domain.ProductsWithNoStockException;
 import io.eventuate.tram.commands.consumer.CommandWithDestination;
 import io.eventuate.tram.sagas.orchestration.SagaDefinition;
 import io.eventuate.tram.sagas.simpledsl.SimpleSaga;
@@ -38,10 +40,16 @@ public class CreateOrderSaga implements SimpleSaga<CreateOrderSagaData> {
             .onReply(CustomerNotFound.class, this::handleCustomerNotFound)
             .onReply(CustomerCreditLimitExceeded.class, this::handleCustomerCreditLimitExceeded)
           .step()
-             .invokeLocal(this::checkProducts)
+             .invokeParticipant(this::checkProducts)
+              .onReply(ProductsWithNoStock.class, this::handleProductsWithNoStock)
           .step()
             .invokeLocal(this::approve)
           .build();
+
+  private CommandWithDestination checkProducts(CreateOrderSagaData data) {
+    List<Product> productList = data.getOrderDetails().getProductList();
+    return this.productService.getProducts(productList);
+  }
 
   private void handleCustomerNotFound(CreateOrderSagaData data, CustomerNotFound reply) {
     data.setRejectionReason(RejectionReason.UNKNOWN_CUSTOMER);
@@ -49,6 +57,10 @@ public class CreateOrderSaga implements SimpleSaga<CreateOrderSagaData> {
 
   private void handleCustomerCreditLimitExceeded(CreateOrderSagaData data, CustomerCreditLimitExceeded reply) {
     data.setRejectionReason(RejectionReason.INSUFFICIENT_CREDIT);
+  }
+
+  private void handleProductsWithNoStock(CreateOrderSagaData data, ProductsWithNoStock reply) {
+    data.setRejectionReason(RejectionReason.PRODUCTS_WITH_NO_STOCK);
   }
 
 
@@ -77,9 +89,5 @@ public class CreateOrderSaga implements SimpleSaga<CreateOrderSagaData> {
     orderService.rejectOrder(data.getOrderId(), data.getRejectionReason());
   }
 
-  private boolean checkProducts(CreateOrderSagaData data) {
-    List<Product> productList = data.getOrderDetails().getProductList();
-    this.productService.getProducts(productList);
-    return true;
-  }
+
 }

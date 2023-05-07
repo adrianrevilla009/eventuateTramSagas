@@ -16,6 +16,8 @@ dependencies {
     implementation "commons-lang:commons-lang:2.6"
 
     implementation project(":api-gateway-service:api-gateway-service-api-web")
+    implementation project(":product-service:product-service-api-web")
+    implementation project(":product-service:product-service-domain")
 
     implementation "io.eventuate.util:eventuate-util-swagger-ui"
 

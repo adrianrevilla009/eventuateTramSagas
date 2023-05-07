@@ -98,6 +98,38 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/GetOrderResponse'
+  /products:
+    post:
+      operationId: getProducts
+      parameters: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetProductsRequest'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProductsResponse'
+  /product:
+    post:
+      operationId: createProduct
+      parameters: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductRequest'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateProductResponse'
 components:
   schemas:
     CreateCustomerResponse:
@@ -170,3 +202,46 @@ components:
         - PENDING
         - APPROVED
         - REJECTED
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        description:
+          type: string
+        stock:
+          type: integer
+          format: int64
+    GetProductsResponse:
+      type: object
+      properties:
+        productList:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+    GetProductsRequest:
+      type: object
+      properties:
+        productList:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+    CreateProductRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        stock:
+          type: integer
+          format: int64
+    CreateProductResponse:
+      type: object
+      properties:
+        stock:
+          type: integer
+          format: int64

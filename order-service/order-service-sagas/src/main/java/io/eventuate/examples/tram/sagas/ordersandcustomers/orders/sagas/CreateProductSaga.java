@@ -1,15 +1,20 @@
 package io.eventuate.examples.tram.sagas.ordersandcustomers.orders.sagas;
 
+import io.eventuate.examples.tram.sagas.ordersandcustomers.customers.api.messaging.replies.CustomerNotFound;
+import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.api.messaging.common.RejectionReason;
+import io.eventuate.examples.tram.sagas.ordersandcustomers.orders.api.messaging.sagas.createorder.CreateOrderSagaData;
 import io.eventuate.examples.tram.sagas.products.api.messaging.createproduct.CreateProductSagaData;
+import io.eventuate.examples.tram.sagas.products.api.messaging.replies.ProductNotFound;
 import io.eventuate.examples.tram.sagas.products.domain.Product;
 import io.eventuate.examples.tram.sagas.products.domain.ProductService;
+import io.eventuate.tram.commands.consumer.CommandWithDestination;
 import io.eventuate.tram.sagas.orchestration.SagaDefinition;
 import io.eventuate.tram.sagas.simpledsl.SimpleSaga;
 
 public class CreateProductSaga implements SimpleSaga<CreateProductSagaData>  {
-    private ProductService productService;
+    private ProductServiceProxy productService;
 
-    public CreateProductSaga(ProductService productService) {
+    public CreateProductSaga(ProductServiceProxy productService) {
         this.productService = productService;
     }
     @Override
@@ -20,16 +25,15 @@ public class CreateProductSaga implements SimpleSaga<CreateProductSagaData>  {
 
     private SagaDefinition<CreateProductSagaData> sagaDefinition =
             step()
-                    .invokeLocal(this::create)
+                    .invokeParticipant(this::create)
                     .withCompensation(this::delete)
                     .build();
 
-    private void create(CreateProductSagaData data) {
-        Product product = productService.createProduct(data.getName(), data.getDescription(), data.getStock());
-        data.setId(product.getId());
+    private CommandWithDestination create(CreateProductSagaData data) {
+        return productService.createProduct(data.getName(), data.getDescription(), data.getStock());
     }
 
-    private void delete(CreateProductSagaData data) {
-        productService.deleteProduct(data.getId());
+    private CommandWithDestination delete(CreateProductSagaData data) {
+        return productService.deleteProduct(data.getId());
     }
 }

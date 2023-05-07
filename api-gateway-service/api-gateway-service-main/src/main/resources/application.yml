@@ -17,6 +17,9 @@ customer:
 order:
   destinations:
     orderServiceUrl: http://${DOCKER_HOST_IP:localhost}:8081
+product:
+  destinations:
+    productServiceUrl: http://${DOCKER_HOST_IP:localhost}:8084
 
 resilience4j.circuitbreaker:
   configs:
@@ -70,6 +73,20 @@ spring:
           predicates:
             - Method=get
             - Path=/orders
+          filters:
+            - CircuitBreaker=myCircuitBreaker
+        - id: get_products
+          uri: ${product.destinations.productServiceUrl}
+          predicates:
+            - Method=POST
+            - Path=/products
+          filters:
+            - CircuitBreaker=myCircuitBreaker
+        - id: create_product
+          uri: ${product.destinations.productServiceUrl}
+          predicates:
+            - Method=POST
+            - Path=/product
           filters:
             - CircuitBreaker=myCircuitBreaker
   web:

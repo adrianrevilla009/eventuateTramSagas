@@ -25,6 +25,9 @@ public class ProductController {
     this.productRepository = productRepository;
   }
 
+  public ProductController() {
+  }
+
   @RequestMapping(value = "/product", method = RequestMethod.POST)
   public CreateProductResponse createProduct(@RequestBody CreateProductRequest createProductRequest) {
     Product product = productService.createProduct(createProductRequest.getName(), createProductRequest.getDescription(), createProductRequest.getStock());
